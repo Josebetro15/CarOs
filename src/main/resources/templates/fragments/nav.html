@@ -1,0 +1,44 @@
+<nav class="nav" th:fragment="bar" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+  <a class="brand" th:href="@{/app}">
+    <img th:src="@{/img/logo-icon.jpg}" alt=""/>
+    <span>CarOs<small>Taller</small></span>
+  </a>
+
+  <p class="nav-label">Inicio</p>
+  <a th:href="@{/app}">Resumen</a>
+
+  <p class="nav-label">Unidades</p>
+  <a th:href="@{/app/vehiculos}">Vehículos</a>
+  <a th:href="@{/app/vehiculos/inspeccion}">Inspección</a>
+  <a sec:authorize="hasAnyRole('MECANICO','ENCARGADO')" th:href="@{/app/scanner}">Escáner</a>
+  <a sec:authorize="hasAnyRole('MECANICO','ENCARGADO')" th:href="@{/app/diagnosticos}">Diagnósticos</a>
+
+  <p class="nav-label" sec:authorize="hasAnyRole('MECANICO','ENCARGADO')">Taller</p>
+  <a sec:authorize="hasAnyRole('MECANICO','ENCARGADO')" th:href="@{/app/partes}">Inventario</a>
+  <a sec:authorize="hasAnyRole('MECANICO','ENCARGADO')" th:href="@{/app/preordenes}">Preórdenes</a>
+  <a sec:authorize="hasAnyRole('MECANICO','ENCARGADO')" th:href="@{/app/ordenes}">Órdenes</a>
+  <a sec:authorize="hasRole('ENCARGADO')" th:href="@{/app/flujo}">Flujo del día</a>
+
+  <p class="nav-label">Avisos</p>
+  <a th:href="@{/app/correo}">Correo</a>
+
+  <div class="nav-foot">
+    <span class="who" th:text="${user != null ? user.displayName : ''}">Nombre</span>
+    <span class="rol" th:text="${user != null ? @etiquetas.de(user.rol.name()) : ''}">rol</span>
+    <form th:action="@{/logout}" method="post">
+      <button class="btn sec" type="submit">Salir</button>
+    </form>
+  </div>
+  <script>
+    (function () {
+      var path = location.pathname;
+      var links = Array.prototype.slice.call(document.querySelectorAll(".nav a"))
+        .filter(function (a) { return a.pathname && a.pathname.indexOf("/app") === 0; })
+        .sort(function (a, b) { return b.pathname.length - a.pathname.length; });
+      var hit = links.find(function (a) {
+        return path === a.pathname || (a.pathname !== "/app" && path.indexOf(a.pathname) === 0);
+      });
+      if (hit) hit.classList.add("active");
+    })();
+  </script>
+</nav>
