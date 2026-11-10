@@ -29,7 +29,7 @@ public class LenguajeTaller {
       "mierda", "joder", "jodido", "jodida", "culero", "culera", "panocha", "maricon", "marica", "joto",
       "jota", "idiota", "estupido", "estupida", "imbecil", "maldito", "maldita", "hijo de puta",
       "hijueputa", "guey", "wey", "naco", "puñetas", "coño", "carajo", "mamon", "mamona", "ojete",
-      "pito", "verga", "zorra", "perra");
+      "pito", "zorra", "perra");
   private static final Set<String> RAICES = Set.of(
       "pendej", "cabron", "chinga", "mierd", "culer", "maric", "pinche", "hijueput", "estup");
 
