@@ -58,9 +58,7 @@ public class PasswordResetService {
       tokens.delete(r);
       throw new IllegalArgumentException("El enlace caducó. Pide otro.");
     }
-    if (pass == null || pass.length() < 6) throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres.");
-    if (pass.length() > 72) throw new IllegalArgumentException("La contraseña es demasiado larga.");
-    if (!pass.equals(pass2)) throw new IllegalArgumentException("Las contraseñas no coinciden.");
+    RegistroService.validarClave(pass, pass2);
     Usuario user = usuarios.findById(r.getUsuarioId())
         .orElseThrow(() -> new IllegalArgumentException("Esa cuenta ya no existe."));
     user.setPassword(encoder.encode(pass));

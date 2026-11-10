@@ -57,10 +57,11 @@ public class RegistroService {
     String email = limpio(correoUsuario).toLowerCase();
     Rol rol = rolDe(rolTexto);
     if (nombreLimpio.length() < 2) throw new IllegalArgumentException("Escribe tu nombre.");
+    if (!nombreLimpio.matches("^[\\p{L}][\\p{L}'-]*(?:\\s+[\\p{L}][\\p{L}'-]*)+$")) {
+      throw new IllegalArgumentException("Escribe tu nombre y apellidos, por ejemplo Carlos Hernandez Rios.");
+    }
     if (!email.matches("^[^@\\s]+@[^@\\s]+\\.[^@\\s]+$")) throw new IllegalArgumentException("El correo no es válido.");
-    if (pass == null || pass.length() < 6) throw new IllegalArgumentException("La contraseña debe tener al menos 6 caracteres.");
-    if (pass.length() > 72) throw new IllegalArgumentException("La contraseña es demasiado larga.");
-    if (!pass.equals(pass2)) throw new IllegalArgumentException("Las contraseñas no coinciden.");
+    validarClave(pass, pass2);
     if (usuarios.existsByEmail(email)) throw new IllegalArgumentException("Ese correo ya tiene cuenta. Entra con él.");
 
     solicitudes.deleteByCorreo(email);
@@ -235,6 +236,14 @@ public class RegistroService {
 
   private String codigo() {
     return String.format("%06d", random.nextInt(1_000_000));
+  }
+
+  static void validarClave(String pass, String pass2) {
+    if (pass == null || !pass.matches("^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^A-Za-z0-9]).{8,72}$")) {
+      throw new IllegalArgumentException(
+          "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.");
+    }
+    if (!pass.equals(pass2)) throw new IllegalArgumentException("Las contraseñas no coinciden.");
   }
 
   private static String limpio(String value) {

@@ -15,10 +15,23 @@
       <p th:if="${ok}" class="flash ok" th:text="${ok}"></p>
       <p th:if="${error}" class="flash err" th:text="${error}"></p>
       <form th:action="@{/registro}" method="post" class="grid">
-        <label>Nombre <input name="nombre" required minlength="2" maxlength="80" placeholder="Tu nombre"/></label>
+        <label>Nombre
+          <input name="nombre" required minlength="5" maxlength="80" placeholder="Carlos Hernandez Rios"
+                 pattern="[A-Za-zÁÉÍÓÚáéíóúÑñÜü][A-Za-zÁÉÍÓÚáéíóúÑñÜü'\-]*(?:\s+[A-Za-zÁÉÍÓÚáéíóúÑñÜü][A-Za-zÁÉÍÓÚáéíóúÑñÜü'\-]*)+"
+                 title="Escribe tu nombre y apellidos, por ejemplo Carlos Hernandez Rios"/>
+        </label>
+        <p class="muted">Escríbelo como quieras. Ejemplo: Carlos Hernandez Rios.</p>
         <label>Correo <input type="email" name="correo" required maxlength="120" placeholder="tu@correo.com"/></label>
-        <label>Contraseña <input type="password" name="password" required minlength="6" maxlength="72"/></label>
-        <label>Repite la contraseña <input type="password" name="password2" required minlength="6" maxlength="72"/></label>
+        <label>Contraseña
+          <input type="password" name="password" required minlength="8" maxlength="72"
+                 pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,72}"
+                 title="Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo"/>
+        </label>
+        <p class="muted">Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.</p>
+        <label>Confirmar contraseña
+          <input type="password" name="password2" required minlength="8" maxlength="72"
+                 title="Escribe otra vez la misma contraseña"/>
+        </label>
         <label>Rol
           <select name="rol" required>
             <option value="CLIENTE">Cliente</option>
@@ -29,6 +42,15 @@
         <button class="btn" type="submit">Enviar códigos</button>
       </form>
       <a class="accent" th:href="@{/login}">Ya tengo cuenta</a>
+      <script>
+        var forma = document.querySelector("form");
+        var otra = forma.password2;
+        otra.addEventListener("input", revisar);
+        forma.addEventListener("submit", revisar);
+        function revisar() {
+          otra.setCustomValidity(forma.password.value === otra.value ? "" : "Las contraseñas no coinciden.");
+        }
+      </script>
     </section>
   </div>
 </body>

@@ -13,10 +13,27 @@
       <h1>Nueva contraseña</h1>
       <p th:if="${error}" class="flash err" th:text="${error}"></p>
       <form th:action="@{/recuperar/{token}(token=${token})}" method="post" class="grid">
-        <label>Contraseña <input type="password" name="password" required minlength="6" maxlength="72"/></label>
-        <label>Repítela <input type="password" name="password2" required minlength="6" maxlength="72"/></label>
+        <label>Contraseña
+          <input type="password" name="password" required minlength="8" maxlength="72"
+                 pattern="(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,72}"
+                 title="Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo"/>
+        </label>
+        <p class="muted">Mínimo 8 caracteres, una mayúscula, una minúscula, un número y un símbolo.</p>
+        <label>Confirmar contraseña
+          <input type="password" name="password2" required minlength="8" maxlength="72"
+                 title="Escribe otra vez la misma contraseña"/>
+        </label>
         <button class="btn" type="submit">Guardar</button>
       </form>
+      <script>
+        var forma = document.querySelector("form");
+        var otra = forma.password2;
+        otra.addEventListener("input", revisar);
+        forma.addEventListener("submit", revisar);
+        function revisar() {
+          otra.setCustomValidity(forma.password.value === otra.value ? "" : "Las contraseñas no coinciden.");
+        }
+      </script>
     </section>
   </div>
 </body>
