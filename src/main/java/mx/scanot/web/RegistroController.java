@@ -50,7 +50,7 @@ public class RegistroController {
         ra.addFlashAttribute("ok", "Cuenta creada. Ya puedes entrar.");
         return "redirect:/login";
       }
-      ra.addFlashAttribute("ok", "El código de acceso se envió a " + registro.supervisor() + ".");
+      ra.addFlashAttribute("ok", "El código quedó en Correo. Entra como supervisor para verlo. Si Gmail lo deja, también llega a " + registro.supervisor() + ".");
       return "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(s.getCorreo(), StandardCharsets.UTF_8);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("error", e.getMessage());

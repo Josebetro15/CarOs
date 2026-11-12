@@ -6,10 +6,12 @@ import java.time.temporal.ChronoUnit;
 import java.util.UUID;
 import mx.scanot.domain.Cliente;
 import mx.scanot.domain.Encargado;
+import mx.scanot.domain.MailMessage;
 import mx.scanot.domain.Mecanico;
 import mx.scanot.domain.Rol;
 import mx.scanot.domain.SolicitudCuenta;
 import mx.scanot.domain.Usuario;
+import mx.scanot.repo.MailMessageRepo;
 import mx.scanot.repo.SolicitudRepo;
 import mx.scanot.repo.UsuarioRepo;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +25,7 @@ public class RegistroService {
   private final UsuarioRepo usuarios;
   private final PasswordEncoder encoder;
   private final CorreoExterno correo;
+  private final MailMessageRepo buzon;
   private final SolicitudIntentos intentos;
   private final LenguajeTaller lenguaje;
   private final SecureRandom random = new SecureRandom();
@@ -34,11 +37,12 @@ public class RegistroService {
   private String sitio;
 
   public RegistroService(SolicitudRepo solicitudes, UsuarioRepo usuarios, PasswordEncoder encoder, CorreoExterno correo,
-                        SolicitudIntentos intentos, LenguajeTaller lenguaje) {
+                        MailMessageRepo buzon, SolicitudIntentos intentos, LenguajeTaller lenguaje) {
     this.solicitudes = solicitudes;
     this.usuarios = usuarios;
     this.encoder = encoder;
     this.correo = correo;
+    this.buzon = buzon;
     this.intentos = intentos;
     this.lenguaje = lenguaje;
   }
@@ -71,11 +75,6 @@ public class RegistroService {
       return null;
     }
 
-    if (!correo.listo()) {
-      throw new IllegalStateException(
-          "Falta la contraseña de aplicación de Gmail en application.properties (spring.mail.password).");
-    }
-
     solicitudes.deleteByCorreo(email);
     solicitudes.flush();
 
@@ -97,10 +96,6 @@ public class RegistroService {
 
   @Transactional
   public void reenviar(String correoUsuario) {
-    if (!correo.listo()) {
-      throw new IllegalStateException(
-          "Falta la contraseña de aplicación de Gmail en application.properties (spring.mail.password).");
-    }
     SolicitudCuenta s = buscar(correoUsuario);
     if (s.getReenvios() >= 3) {
       throw new IllegalArgumentException("Ya reenviamos el código 3 veces. Espera a que caduque o crea la cuenta de nuevo.");
@@ -116,11 +111,25 @@ public class RegistroService {
   }
 
   private void enviarCodigoAcceso(SolicitudCuenta s) {
-    correo.enviar(supervisor, "CarOs · código de acceso para " + etiqueta(s.getRol()),
-        "Hola.\n\n"
-            + s.getNombre() + " (" + s.getCorreo() + ") pidió una cuenta de " + etiqueta(s.getRol()) + " en CarOs.\n\n"
-            + "Código de acceso: " + s.getCodigoAcceso() + "\n\n"
-            + "Pásaselo solo si autorizas ese rol. Caduca en 30 minutos.");
+    String asunto = "CarOs · código de acceso para " + etiqueta(s.getRol());
+    String cuerpo = "Hola.\n\n"
+        + s.getNombre() + " (" + s.getCorreo() + ") pidió una cuenta de " + etiqueta(s.getRol()) + " en CarOs.\n\n"
+        + "Código de acceso: " + s.getCodigoAcceso() + "\n\n"
+        + "Pásaselo solo si autorizas ese rol. Caduca en 30 minutos.";
+    MailMessage m = new MailMessage();
+    m.setRefKey("acceso-" + s.getCorreo() + "-" + s.getCodigoAcceso());
+    m.setToEmail(supervisor);
+    m.setToName("Supervisor");
+    m.setSubject(asunto);
+    m.setBody(cuerpo);
+    m.setKind("acceso");
+    buzon.save(m);
+    if (!correo.listo()) return;
+    try {
+      correo.enviar(supervisor, asunto, cuerpo);
+    } catch (RuntimeException ignored) {
+      // Gmail desde Render a veces no sale. El código queda en Correo del supervisor.
+    }
   }
 
   @Transactional
@@ -149,10 +158,6 @@ public class RegistroService {
 
   @Transactional
   public SolicitudCuenta solicitarGoogle(String nombre, String email, Rol rol) {
-    if (!correo.listo()) {
-      throw new IllegalStateException(
-          "Falta la contraseña de aplicación de Gmail en application.properties (spring.mail.password).");
-    }
     if (rol != Rol.MECANICO && rol != Rol.ENCARGADO) {
       throw new IllegalArgumentException("Ese rol no necesita código de supervisor.");
     }
@@ -172,11 +177,7 @@ public class RegistroService {
     s.setCreadoEn(Instant.now());
     s.setExpiraEn(Instant.now().plus(30, ChronoUnit.MINUTES));
     solicitudes.save(s);
-    correo.enviar(supervisor, "CarOs · código de acceso para " + etiqueta(rol),
-        "Hola.\n\n"
-            + nombre + " (" + email + ") quiere una cuenta de " + etiqueta(rol) + " con Google.\n\n"
-            + "Código de acceso: " + s.getCodigoAcceso() + "\n\n"
-            + "Pásaselo solo si autorizas ese rol. Caduca en 30 minutos.");
+    enviarCodigoAcceso(s);
     return s;
   }
 
