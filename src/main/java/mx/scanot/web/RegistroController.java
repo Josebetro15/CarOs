@@ -50,7 +50,7 @@ public class RegistroController {
         ra.addFlashAttribute("ok", "Cuenta creada. Ya puedes entrar.");
         return "redirect:/login";
       }
-      ra.addFlashAttribute("ok", "El código quedó en Correo. Entra como supervisor para verlo. Si Gmail lo deja, también llega a " + registro.supervisor() + ".");
+      ra.addFlashAttribute("ok", "Se ha enviado el código de verificación al supervisor.");
       return "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(s.getCorreo(), StandardCharsets.UTF_8);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("error", e.getMessage());
@@ -93,7 +93,7 @@ public class RegistroController {
     String destino = "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(correo.trim().toLowerCase(), StandardCharsets.UTF_8);
     try {
       registro.reenviar(correo);
-      ra.addFlashAttribute("ok", "Reenviamos el código de acceso al supervisor. El anterior ya no sirve.");
+      ra.addFlashAttribute("ok", "Se ha enviado el código de verificación al supervisor.");
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("error", e.getMessage());
     }
@@ -134,7 +134,7 @@ public class RegistroController {
       registro.solicitarGoogle(nombre, correo, elegido);
       request.getSession().removeAttribute("googleCorreo");
       request.getSession().removeAttribute("googleNombre");
-      ra.addFlashAttribute("ok", "Google ya confirmó tu correo. El código de acceso se envió al supervisor.");
+      ra.addFlashAttribute("ok", "Se ha enviado el código de verificación al supervisor.");
       return "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(correo, StandardCharsets.UTF_8);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("error", e.getMessage());
@@ -151,7 +151,7 @@ public class RegistroController {
         ra.addFlashAttribute("ok", "Correo confirmado. Ya puedes entrar.");
         return "redirect:/login";
       }
-      ra.addFlashAttribute("ok", "Correo confirmado. Ahora escribe el código que recibió el supervisor.");
+      ra.addFlashAttribute("ok", "Se ha enviado el código de verificación al supervisor.");
       return "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(s.getCorreo(), StandardCharsets.UTF_8);
     } catch (IllegalArgumentException e) {
       ra.addFlashAttribute("error", e.getMessage());

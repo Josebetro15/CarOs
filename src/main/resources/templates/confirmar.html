@@ -14,7 +14,7 @@
       <p class="muted" th:text="'Cuenta de ' + ${rolTexto} + ' para ' + ${solicitud.correo}">correo</p>
       <p th:if="${ok}" class="flash ok" th:text="${ok}"></p>
       <p th:if="${error}" class="flash err" th:text="${error}"></p>
-      <p class="muted" th:if="${solicitud.pideAcceso}">El código está en Correo del supervisor. Entra con esa cuenta, ábrelo y escríbelo aquí. Si Gmail lo deja, también llega a <span th:text="${supervisor}">supervisor</span>.</p>
+      <p class="muted" th:if="${solicitud.pideAcceso}">Se ha enviado el código de verificación al supervisor.</p>
       <form th:action="@{/registro/confirmar}" method="post" class="grid">
         <input type="hidden" name="correo" th:value="${solicitud.correo}"/>
         <label th:if="${solicitud.pideAcceso}">Código de acceso del supervisor
