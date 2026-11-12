@@ -49,10 +49,6 @@ public class RegistroService {
 
   @Transactional
   public SolicitudCuenta solicitar(String nombre, String correoUsuario, String pass, String pass2, String rolTexto) {
-    if (!correo.listo()) {
-      throw new IllegalStateException(
-          "Falta la contraseña de aplicación de Gmail en application.properties (spring.mail.password).");
-    }
     String nombreLimpio = lenguaje.persona(nombre);
     String email = limpio(correoUsuario).toLowerCase();
     Rol rol = rolDe(rolTexto);
@@ -64,6 +60,22 @@ public class RegistroService {
     validarClave(pass, pass2);
     if (usuarios.existsByEmail(email)) throw new IllegalArgumentException("Ese correo ya tiene cuenta. Entra con él.");
 
+    if (rol == Rol.CLIENTE) {
+      solicitudes.deleteByCorreo(email);
+      Usuario u = new Cliente();
+      u.setEmail(email);
+      u.setDisplayName(nombreLimpio);
+      u.setPassword(encoder.encode(pass));
+      u.setRol(Rol.CLIENTE);
+      usuarios.save(u);
+      return null;
+    }
+
+    if (!correo.listo()) {
+      throw new IllegalStateException(
+          "Falta la contraseña de aplicación de Gmail en application.properties (spring.mail.password).");
+    }
+
     solicitudes.deleteByCorreo(email);
     solicitudes.flush();
 
@@ -74,12 +86,12 @@ public class RegistroService {
     s.setRol(rol);
     s.setCodigoCorreo(codigo());
     s.setTokenCorreo(UUID.randomUUID().toString().replace("-", ""));
-    s.setCorreoOk(false);
+    s.setCorreoOk(true);
+    s.setCodigoAcceso(codigo());
     s.setCreadoEn(Instant.now());
     s.setExpiraEn(Instant.now().plus(30, ChronoUnit.MINUTES));
-    if (s.pideAcceso()) s.setCodigoAcceso(codigo());
     solicitudes.save(s);
-    enviarCodigos(s);
+    enviarCodigoAcceso(s);
     return s;
   }
 
@@ -95,29 +107,20 @@ public class RegistroService {
     }
     s.setCodigoCorreo(codigo());
     s.setTokenCorreo(UUID.randomUUID().toString().replace("-", ""));
-    s.setCorreoOk(false);
+    s.setCorreoOk(true);
     s.setReenvios(s.getReenvios() + 1);
     s.setExpiraEn(Instant.now().plus(30, ChronoUnit.MINUTES));
     if (s.pideAcceso()) s.setCodigoAcceso(codigo());
     solicitudes.save(s);
-    enviarCodigos(s);
+    if (s.pideAcceso()) enviarCodigoAcceso(s);
   }
 
-  private void enviarCodigos(SolicitudCuenta s) {
-    String base = sitio.endsWith("/") ? sitio.substring(0, sitio.length() - 1) : sitio;
-    String enlace = base + "/registro/verificar?token=" + s.getTokenCorreo();
-    correo.enviar(s.getCorreo(), "CarOs · confirma tu correo",
-        "Hola " + s.getNombre() + ".\n\n"
-            + "Para confirmar tu correo en CarOs usa este código: " + s.getCodigoCorreo() + "\n\n"
-            + "O abre este enlace:\n" + enlace + "\n\n"
-            + "Caduca en 30 minutos. Si no pediste la cuenta, ignora este mensaje.");
-    if (s.pideAcceso()) {
-      correo.enviar(supervisor, "CarOs · código de acceso para " + etiqueta(s.getRol()),
-          "Hola.\n\n"
-              + s.getNombre() + " (" + s.getCorreo() + ") pidió una cuenta de " + etiqueta(s.getRol()) + " en CarOs.\n\n"
-              + "Código de acceso: " + s.getCodigoAcceso() + "\n\n"
-              + "Pásaselo solo si autorizas ese rol. Caduca en 30 minutos.");
-    }
+  private void enviarCodigoAcceso(SolicitudCuenta s) {
+    correo.enviar(supervisor, "CarOs · código de acceso para " + etiqueta(s.getRol()),
+        "Hola.\n\n"
+            + s.getNombre() + " (" + s.getCorreo() + ") pidió una cuenta de " + etiqueta(s.getRol()) + " en CarOs.\n\n"
+            + "Código de acceso: " + s.getCodigoAcceso() + "\n\n"
+            + "Pásaselo solo si autorizas ese rol. Caduca en 30 minutos.");
   }
 
   @Transactional
@@ -132,14 +135,6 @@ public class RegistroService {
   @Transactional
   public boolean confirmar(String correoUsuario, String codigoCorreo, String codigoAcceso) {
     SolicitudCuenta s = buscar(correoUsuario);
-    if (!s.isCorreoOk()) {
-      if (codigoCorreo == null || !s.getCodigoCorreo().equals(codigoCorreo.trim())) {
-        int n = intentos.sumar(s.getId());
-        if (n >= 5) throw new IllegalArgumentException("Demasiados intentos. Vuelve a crear la cuenta.");
-        throw new IllegalArgumentException("El código de tu correo no coincide. Te quedan " + (5 - n) + " intentos.");
-      }
-      s.setCorreoOk(true);
-    }
     if (s.pideAcceso()) {
       if (codigoAcceso == null || s.getCodigoAcceso() == null || !s.getCodigoAcceso().equals(codigoAcceso.trim())) {
         int n = intentos.sumar(s.getId());

@@ -11,7 +11,7 @@
     <section class="card auth-card">
       <a th:href="@{/}"><img th:src="@{/img/logo.jpg}" alt="CarOs" style="height:52px;width:auto;border-radius:8px"/></a>
       <h1>Crear cuenta</h1>
-      <p class="muted">Elige el rol. Cliente solo confirma su correo. Mecánico y supervisor necesitan un código que se envía a <span th:text="${supervisor}">supervisor</span>.</p>
+      <p class="muted">El cliente entra de una vez. Mecánico y supervisor necesitan el código que se envía a <span th:text="${supervisor}">supervisor</span>.</p>
       <p th:if="${ok}" class="flash ok" th:text="${ok}"></p>
       <p th:if="${error}" class="flash err" th:text="${error}"></p>
       <form th:action="@{/registro}" method="post" class="grid">
@@ -39,7 +39,7 @@
             <option value="ENCARGADO">Supervisor</option>
           </select>
         </label>
-        <button class="btn" type="submit">Enviar códigos</button>
+        <button class="btn" type="submit">Crear cuenta</button>
       </form>
       <a class="accent" th:href="@{/login}">Ya tengo cuenta</a>
       <script>

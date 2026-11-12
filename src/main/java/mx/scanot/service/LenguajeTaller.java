@@ -24,12 +24,12 @@ public class LenguajeTaller {
       "de", "del", "la", "las", "el", "los", "un", "una", "y", "o", "u", "e", "a", "en", "con", "sin",
       "para", "por", "al", "su", "sus", "que", "se", "es", "son", "esta", "está", "este", "estos");
   private static final Set<String> GROSERIAS = Set.of(
-      "puto", "puta", "putos", "putas", "pendejo", "pendeja", "pendejos", "pendeja", "cabron", "cabrona",
+      "puto", "puta", "putos", "putas", "pendejo", "pendeja", "pendejos", "pendejas", "cabron", "cabrona",
       "cabrones", "verga", "chingar", "chingada", "chingado", "chingados", "chinga", "pinche", "pinches",
       "mierda", "joder", "jodido", "jodida", "culero", "culera", "panocha", "maricon", "marica", "joto",
       "jota", "idiota", "estupido", "estupida", "imbecil", "maldito", "maldita", "hijo de puta",
       "hijueputa", "guey", "wey", "naco", "puñetas", "coño", "carajo", "mamon", "mamona", "ojete",
-      "pito", "verga", "zorra", "perra");
+      "pito", "vergas", "zorra", "perra");
   private static final Set<String> RAICES = Set.of(
       "pendej", "cabron", "chinga", "mierd", "culer", "maric", "pinche", "hijueput", "estup");
 

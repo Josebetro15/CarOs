@@ -46,10 +46,11 @@ public class RegistroController {
                       RedirectAttributes ra) {
     try {
       SolicitudCuenta s = registro.solicitar(nombre, correo, password, password2, rol);
-      String aviso = s.pideAcceso()
-          ? "Te enviamos un código a tu correo. El código de acceso se envió al supervisor."
-          : "Te enviamos un código y un enlace a tu correo.";
-      ra.addFlashAttribute("ok", aviso);
+      if (s == null) {
+        ra.addFlashAttribute("ok", "Cuenta creada. Ya puedes entrar.");
+        return "redirect:/login";
+      }
+      ra.addFlashAttribute("ok", "El código de acceso se envió a " + registro.supervisor() + ".");
       return "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(s.getCorreo(), StandardCharsets.UTF_8);
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("error", e.getMessage());
@@ -92,7 +93,7 @@ public class RegistroController {
     String destino = "redirect:/registro/confirmar?correo=" + UriUtils.encodeQueryParam(correo.trim().toLowerCase(), StandardCharsets.UTF_8);
     try {
       registro.reenviar(correo);
-      ra.addFlashAttribute("ok", "Te reenviamos un código nuevo. El anterior ya no sirve. Revisa también el spam.");
+      ra.addFlashAttribute("ok", "Reenviamos el código de acceso al supervisor. El anterior ya no sirve.");
     } catch (IllegalArgumentException | IllegalStateException e) {
       ra.addFlashAttribute("error", e.getMessage());
     }
