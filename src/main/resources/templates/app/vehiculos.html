@@ -37,6 +37,7 @@
     </section>
     <div class="grid cols-2">
       <a class="card" th:each="v : ${vehicles}" th:href="@{/app/vehiculos/{id}(id=${v.id})}">
+        <img class="cover" th:if="${portadas[v.id] != null}" th:src="${portadas[v.id]}" alt="Foto de la unidad"/>
         <h2 th:text="${v.brand + ' ' + v.model}">auto</h2>
         <p class="mono accent" th:text="${v.plate}">X</p>
         <p class="muted" th:text="${v.year + ' · ' + v.km + ' km · salud ' + v.health}">x</p>

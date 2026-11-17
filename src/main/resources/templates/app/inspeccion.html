@@ -23,7 +23,14 @@
         </div>
       </div>
       <div class="stage" id="stage">
-        <img th:src="@{/img/hero.jpg}" alt="Unidad en inspección" id="foto"/>
+        <img th:if="${#lists.isEmpty(fotos)}" th:src="@{/img/hero.jpg}" alt="Unidad en inspección" id="foto"/>
+        <img th:unless="${#lists.isEmpty(fotos)}" th:src="${fotos[0]}" alt="Foto actual de la unidad" id="foto"/>
+      </div>
+      <p class="muted" th:if="${#lists.isEmpty(fotos)}">Esta unidad todavía no tiene fotos. Se muestra la imagen general.</p>
+      <div class="thumbs" th:if="${!#lists.isEmpty(fotos)}">
+        <button type="button" class="thumb" th:each="f : ${fotos}" th:attr="data-src=${f}">
+          <img th:src="${f}" alt="Foto"/>
+        </button>
       </div>
       <label>Zoom
         <input id="zoom" type="range" min="1" max="3" step="0.1" value="1"/>
@@ -38,6 +45,13 @@
         foto.style.transform = 'scale(' + zoom.value + ')';
       });
     }
+    document.querySelectorAll('.thumb').forEach(function (b) {
+      b.addEventListener('click', function () {
+        if (!foto) return;
+        foto.src = b.getAttribute('data-src');
+        if (zoom) { zoom.value = 1; foto.style.transform = 'scale(1)'; }
+      });
+    });
   </script>
 </body>
 </html>

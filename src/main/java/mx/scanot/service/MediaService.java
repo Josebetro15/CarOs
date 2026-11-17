@@ -40,6 +40,16 @@ public class MediaService {
     return "/uploads/" + name;
   }
 
+  public void borrar(String url) {
+    if (url == null || !url.startsWith("/uploads/")) return;
+    String name = url.substring("/uploads/".length());
+    if (!name.matches("[A-Za-z0-9._-]+")) return;
+    try {
+      Files.deleteIfExists(Path.of(uploadDir).toAbsolutePath().resolve(name));
+    } catch (IOException ignored) {
+      // Si el archivo ya no está en disco, se borra igual el registro.
+    }
+  }
   public static String kindOf(MultipartFile file) {
     String orig = file.getOriginalFilename() == null ? "" : file.getOriginalFilename().toLowerCase(Locale.ROOT);
     if (orig.endsWith(".mp4") || orig.endsWith(".webm") || orig.endsWith(".mov")) return "video";

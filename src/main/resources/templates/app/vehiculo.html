@@ -16,8 +16,53 @@
       <h1 th:text="${v.brand + ' ' + v.model}">auto</h1>
       <p class="muted" th:text="'VIN ' + ${v.vin} + ' · ' + ${v.year} + ' · ' + ${v.km} + ' km · salud ' + ${v.health}">x</p>
       <p th:if="${v.inventarioInicial != null and !v.inventarioInicial.isEmpty()}" th:text="'Inventario de recepción: ' + ${v.inventarioInicial}"></p>
-      <a class="accent" th:href="@{/app/vehiculos/inspeccion(id=${v.id})}">Ver imagen con zoom</a>
+      <a class="accent" th:href="@{/app/vehiculos/inspeccion(id=${v.id})}">Abrir zoom de esta unidad</a>
     </div>
+    <section class="card">
+      <h2>Fotos</h2>
+      <div class="stage" th:if="${!#lists.isEmpty(fotos)}">
+        <img id="foto" th:src="${fotos[0]}" alt="Foto de la unidad"/>
+      </div>
+      <p class="muted" th:if="${#lists.isEmpty(fotos)}">Todavía no hay fotos. El zoom usa la imagen general hasta que se suba una.</p>
+      <label th:if="${!#lists.isEmpty(fotos)}">Zoom
+        <input id="zoom" type="range" min="1" max="3" step="0.1" value="1"/>
+      </label>
+      <div class="thumbs" th:if="${!#lists.isEmpty(fotos)}">
+        <button type="button" class="thumb" th:each="f : ${fotos}" th:attr="data-src=${f}">
+          <img th:src="${f}" alt="Miniatura"/>
+        </button>
+      </div>
+    </section>
+    <section class="card" th:if="${supervisor}">
+      <h2>Modificar unidad</h2>
+      <form th:action="@{/app/vehiculos/{id}/editar(id=${v.id})}" method="post" enctype="multipart/form-data" class="grid cols-2">
+        <label>Placa <input name="plate" required minlength="5" maxlength="12" th:value="${v.plate}"/></label>
+        <label>VIN <input name="vin" required minlength="11" maxlength="17" th:value="${v.vin}"/></label>
+        <label>Marca <input name="brand" required minlength="2" maxlength="40" th:value="${v.brand}"/></label>
+        <label>Modelo <input name="modelName" required maxlength="40" th:value="${v.model}"/></label>
+        <label>Año <input name="year" type="number" required min="1980" max="2035" th:value="${v.year}"/></label>
+        <label>Kilometraje <input name="km" type="number" required min="0" th:value="${v.km}"/></label>
+        <label>Salud <input name="health" type="number" required min="0" max="100" th:value="${v.health}"/></label>
+        <label>Cliente
+          <select name="ownerId">
+            <option value="">Sin cliente</option>
+            <option th:each="c : ${clientes}" th:value="${c.id}" th:text="${c.displayName + ' · ' + c.email}"
+                    th:selected="${v.ownerUserId != null and v.ownerUserId == c.id}"></option>
+          </select>
+        </label>
+        <label style="grid-column:1/-1">Inventario inicial
+          <textarea name="inventario" maxlength="500" th:text="${v.inventarioInicial}"></textarea>
+        </label>
+        <label style="grid-column:1/-1">Fotos nuevas (hasta 3). Reemplazan la imagen del zoom.
+          <input type="file" name="fotos" accept="image/*,video/*" multiple/>
+        </label>
+        <button class="btn" type="submit">Guardar cambios</button>
+      </form>
+      <form th:action="@{/app/vehiculos/{id}/eliminar(id=${v.id})}" method="post"
+            onsubmit="return confirm('¿Eliminar esta unidad y sus fotos?');">
+        <button class="btn danger" type="submit">Eliminar unidad</button>
+      </form>
+    </section>
     <section class="card" th:if="${staff}">
       <h2>Publicar avance</h2>
       <form th:action="@{/app/vehiculos/{id}/avance(id=${v.id})}" method="post" enctype="multipart/form-data" class="grid">
@@ -37,8 +82,11 @@
         <p><b th:text="${@etiquetas.de(u.kind)}">kind</b></p>
         <p th:text="${u.message}">msg</p>
         <div class="media" th:each="m : ${u.media}">
-          <img th:if="${m.mediaType == 'image'}" th:src="${m.url}" alt="avance"/>
+          <img th:if="${m.mediaType == 'image'}" th:src="${m.url}" alt="avance" class="thumb-open" th:attr="data-src=${m.url}"/>
           <video th:if="${m.mediaType == 'video'}" th:src="${m.url}" controls></video>
+          <form th:if="${supervisor}" th:action="@{/app/vehiculos/{id}/fotos/{foto}/eliminar(id=${v.id},foto=${m.id})}" method="post">
+            <button class="btn sec" type="submit">Quitar esta imagen</button>
+          </form>
         </div>
       </div>
       <p th:if="${#lists.isEmpty(updates)}" class="muted">Todavía no hay actualizaciones.</p>
@@ -52,5 +100,21 @@
       </div>
     </section>
   </main>
+  <script>
+    var zoom = document.getElementById('zoom');
+    var foto = document.getElementById('foto');
+    function aplicar(valor) {
+      if (foto) foto.style.transform = 'scale(' + valor + ')';
+    }
+    if (zoom && foto) zoom.addEventListener('input', function () { aplicar(zoom.value); });
+    document.querySelectorAll('.thumb, .thumb-open').forEach(function (el) {
+      el.addEventListener('click', function () {
+        if (!foto) return;
+        foto.src = el.getAttribute('data-src');
+        if (zoom) { zoom.value = 1; aplicar(1); }
+        foto.scrollIntoView({behavior: 'smooth', block: 'center'});
+      });
+    });
+  </script>
 </body>
 </html>

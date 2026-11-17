@@ -187,6 +187,11 @@ body:has(> .nav) {
 .bubble.bot { background: var(--elevated); }
 .bubble.user { background: var(--accent); color: var(--accent-fg); margin-left: auto; }
 .stage { height: 420px; overflow: hidden; border-radius: 6px; background: #1a1d1f; display: grid; place-items: center; }
-.stage img { width: min(100%, 720px); transform: scale(var(--zoom, 1)); transform-origin: center; }
+.stage img { width: min(100%, 720px); max-height: 400px; object-fit: contain; transform: scale(var(--zoom, 1)); transform-origin: center; transition: transform .12s ease; }
+.thumbs { display: flex; flex-wrap: wrap; gap: 8px; }
+.thumb { border: 1px solid var(--border); padding: 0; background: none; cursor: zoom-in; border-radius: 4px; }
+.thumb img, .cover { width: 96px; height: 72px; object-fit: cover; display: block; border-radius: 4px; }
+.card .cover { width: 100%; height: 150px; }
+.danger { background: #8d2a2a; color: #fff; }
 .board { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 12px; align-items: start; }
 ul { margin: 8px 0 0; padding-left: 18px; }
