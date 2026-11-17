@@ -20,6 +20,9 @@
       <form th:if="${s.status == 'open'}" th:action="@{/app/diagnosticos/{id}/cerrar(id=${s.id})}" method="post">
         <button class="btn sec" type="submit">Cerrar señal</button>
       </form>
+      <form th:if="${s.status != 'open'}" th:action="@{/app/diagnosticos/{id}/reabrir(id=${s.id})}" method="post">
+        <button class="btn sec" type="submit">Reabrir señal</button>
+      </form>
     </div>
   </main>
 </body>

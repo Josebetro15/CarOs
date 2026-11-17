@@ -14,6 +14,7 @@ import mx.scanot.repo.SignalRepo;
 import mx.scanot.repo.UpdateMediaRepo;
 import mx.scanot.repo.VehicleRepo;
 import mx.scanot.repo.VehicleUpdateRepo;
+import mx.scanot.repo.WorkOrderRepo;
 import mx.scanot.service.MediaService;
 import mx.scanot.domain.Cliente;
 import mx.scanot.repo.ClienteRepo;
@@ -55,11 +56,12 @@ public class VehicleController {
   private final MailboxService mailbox;
   private final LenguajeTaller lenguaje;
   private final UpdateMediaRepo archivos;
+  private final WorkOrderRepo ordenes;
   private final EntityManager em;
 
   public VehicleController(VehicleRepo vehicles, SignalRepo signals, VehicleUpdateRepo updates, MediaService media,
                            Personas personas, ClienteRepo clientes, MailboxService mailbox, LenguajeTaller lenguaje,
-                           UpdateMediaRepo archivos, EntityManager em) {
+                           UpdateMediaRepo archivos, WorkOrderRepo ordenes, EntityManager em) {
     this.vehicles = vehicles;
     this.signals = signals;
     this.updates = updates;
@@ -69,6 +71,7 @@ public class VehicleController {
     this.mailbox = mailbox;
     this.lenguaje = lenguaje;
     this.archivos = archivos;
+    this.ordenes = ordenes;
     this.em = em;
   }
 
@@ -197,6 +200,7 @@ public class VehicleController {
     model.addAttribute("staff", user.getRol() != Rol.CLIENTE);
     model.addAttribute("supervisor", user.getRol() == Rol.ENCARGADO);
     model.addAttribute("fotos", fotosDe(v));
+    model.addAttribute("ordenesUnidad", ordenes.findByVehicleOrderByIdDesc(v));
     if (user.getRol() == Rol.ENCARGADO) model.addAttribute("clientes", clientes.findAll());
     return "app/vehiculo";
   }

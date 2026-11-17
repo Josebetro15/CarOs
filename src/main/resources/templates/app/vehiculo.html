@@ -92,6 +92,15 @@
       <p th:if="${#lists.isEmpty(updates)}" class="muted">Todavía no hay actualizaciones.</p>
     </section>
     <section class="card">
+      <h2>Órdenes de esta unidad</h2>
+      <div th:each="o : ${ordenesUnidad}" class="row" style="justify-content:space-between;margin-top:8px">
+        <span class="mono accent" th:text="${o.folio}">OT</span>
+        <span th:text="${o.workDesc}">d</span>
+        <span class="badge" th:text="${@etiquetas.de(o.status)}">pendiente</span>
+      </div>
+      <p th:if="${#lists.isEmpty(ordenesUnidad)}" class="muted">Todavía no hay órdenes de trabajo.</p>
+    </section>
+    <section class="card">
       <h2>Diagnósticos</h2>
       <div th:each="s : ${signals}" class="row" style="justify-content:space-between;margin-top:8px">
         <span class="mono accent" th:text="${s.code}">P</span>

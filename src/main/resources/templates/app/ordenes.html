@@ -40,8 +40,31 @@
       <span class="mono accent" th:text="${o.folio}">OT</span>
       <p th:text="${o.vehicle.plate + ' · ' + o.technician}">x</p>
       <p th:text="${o.workDesc}">d</p>
+      <p class="muted" th:if="${o.partName != null}" th:text="'Pieza: ' + ${o.partName}"></p>
+      <p class="muted" th:text="${o.hours + ' h'}"></p>
       <p class="muted" th:if="${o.supplierName != null}" th:text="${o.supplierName + (o.leadDays == null ? '' : ' · ' + o.leadDays + ' días')}"></p>
       <span class="badge" th:text="${@etiquetas.de(o.status)}">pendiente</span>
+      <form th:action="@{/app/ordenes/{id}(id=${o.id})}" method="post" class="grid" style="margin-top:10px">
+        <label>Trabajo <input name="workDesc" required minlength="3" maxlength="255" th:value="${o.workDesc}"/></label>
+        <label>Horas <input name="hours" inputmode="decimal" th:value="${o.hours}"/></label>
+        <label th:unless="${soyMecanico}">Mecánico
+          <select name="mechanicId" required>
+            <option th:each="m : ${mecanicos}" th:value="${m.id}" th:text="${m.displayName}"
+                    th:selected="${o.mecanico != null and o.mecanico.id == m.id}"></option>
+          </select>
+        </label>
+        <label>Refacción
+          <select name="partId">
+            <option value="">Sin pieza</option>
+            <option th:each="p : ${parts}" th:value="${p.id}" th:text="${p.sku + ' · ' + p.name}"></option>
+          </select>
+        </label>
+        <button class="btn sec" type="submit">Guardar cambios</button>
+      </form>
+      <form th:if="${supervisor}" th:action="@{/app/ordenes/{id}/eliminar(id=${o.id})}" method="post"
+            onsubmit="return confirm('¿Cancelar esta orden?');">
+        <button class="btn danger" type="submit">Cancelar orden</button>
+      </form>
     </div>
   </main>
 </body>

@@ -279,6 +279,7 @@ public class TallerController {
     model.addAttribute("parts", parts.findAll());
     model.addAttribute("mecanicos", mecanicos.findAll());
     model.addAttribute("soyMecanico", user.getRol() == Rol.MECANICO);
+    model.addAttribute("supervisor", user.getRol() == Rol.ENCARGADO);
     return "app/ordenes";
   }
 
@@ -327,6 +328,62 @@ public class TallerController {
       ra.addFlashAttribute("error", e.getMessage());
     }
     return "redirect:/app/ordenes";
+  }
+
+  @PostMapping("/ordenes/{id}")
+  public String editarOt(@PathVariable Long id,
+                         @AuthenticationPrincipal Usuario user,
+                         @RequestParam String workDesc,
+                         @RequestParam(required = false) Long partId,
+                         @RequestParam(required = false) Long mechanicId,
+                         @RequestParam(required = false) String hours,
+                         RedirectAttributes ra) {
+    staff(user);
+    try {
+      WorkOrder o = orders.findById(id).orElseThrow(() -> new IllegalArgumentException("Esa orden no existe."));
+      String trabajo = lenguaje.corregir(workDesc.trim());
+      if (trabajo.length() < 3) throw new IllegalArgumentException("Describe el trabajo, mínimo 3 letras.");
+      if (trabajo.length() > 255) throw new IllegalArgumentException("La descripción no puede pasar de 255 letras.");
+      o.setWorkDesc(trabajo);
+      o.setHours(horasDe(hours));
+      if (user.getRol() != Rol.MECANICO) {
+        Mecanico m = mecanicos.findById(mechanicId == null ? -1 : mechanicId)
+            .orElseThrow(() -> new IllegalArgumentException("Elige al mecánico."));
+        o.setTechnician(m.getDisplayName());
+        o.setMecanico(m);
+      }
+      if (partId == null) {
+        o.setPartName(null);
+      } else {
+        parts.findById(partId).ifPresent(p -> o.setPartName(p.getSku() + " · " + p.getName()));
+      }
+      personas.vigila(o, user);
+      orders.save(o);
+      ra.addFlashAttribute("ok", "Orden " + o.getFolio() + " actualizada.");
+    } catch (IllegalArgumentException e) {
+      ra.addFlashAttribute("error", e.getMessage());
+    }
+    return "redirect:/app/ordenes";
+  }
+
+  @PostMapping("/ordenes/{id}/eliminar")
+  public String eliminarOt(@PathVariable Long id, @AuthenticationPrincipal Usuario user, RedirectAttributes ra) {
+    if (user.getRol() != Rol.ENCARGADO) throw new ResponseStatusException(HttpStatus.FORBIDDEN);
+    WorkOrder o = orders.findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND));
+    String folio = o.getFolio();
+    orders.delete(o);
+    ra.addFlashAttribute("ok", "Se canceló la orden " + folio + ".");
+    return "redirect:/app/ordenes";
+  }
+
+  @PostMapping("/diagnosticos/{id}/reabrir")
+  public String reabrir(@PathVariable Long id, @AuthenticationPrincipal Usuario user) {
+    staff(user);
+    Signal s = signals.findById(id).orElseThrow();
+    s.setStatus("open");
+    s.setClosedAt(null);
+    signals.save(s);
+    return "redirect:/app/diagnosticos";
   }
 
   @GetMapping("/flujo")
